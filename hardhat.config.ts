@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-ethers";
 import "hardhat-gas-reporter";
 import dotenv from "dotenv";
 

@@ -1,18 +1,27 @@
 import hardhat, { ethers, network } from "hardhat";
 import { JsonRpcProvider } from "@ethersproject/providers"; 
 
-const infuraUrl = process.env.BCS_API_URL;
+const infuraUrl = process.env.SEPOLIA_API_URL;
 const provider = new JsonRpcProvider(infuraUrl);
+
 
 async function main() {
   const [deployer] = await ethers.getSigners();
 
-  console.log("Deploying contracts with the account:", deployer.address);
+  const blockNumber = await provider.getBlockNumber();
+  console.log("Текущий блок:", blockNumber);
 
-  const LOL = await ethers.getContractFactory("LOL");
+  console.log("Deploying contracts with the account:", deployer!.address);
 
-  // Разворачиваем контракт и передаем deployer.address как initialOwner
-  const lol = await LOL.deploy(deployer.address);
+  const LOL = await ethers.getContractFactory("RoyalFools");
+
+  // Задаём аргументы для конструктора
+  const foolURI = "ipfs://some_uri/";
+  const royalCourt = 1000;
+  const inPrison = 100;
+
+  // Разворачиваем контракт с необходимыми аргументами конструктора
+  const lol = await LOL.deploy(foolURI, royalCourt, inPrison);
 
   const deploymentTx = lol.deploymentTransaction();
   if (deploymentTx === null) {
@@ -23,13 +32,14 @@ async function main() {
 
   // Ожидаем 5 подтверждений
   const receipt = await deploymentTx.wait(5);
-  console.log(`Контракт lol развернут по адресу: ${lol.target} после 5 подтверждений`);
+  console.log(`Block number: ${receipt!.blockNumber}`);
+  console.log(`Контракт развернут по адресу: ${lol.target} после 5 подтверждений`);
 
 
   console.log("Верификация контракта...");
   await hardhat.run("verify:verify", {
     address: lol.target,
-    constructorArguments: [deployer.address], 
+    constructorArguments: [foolURI, royalCourt, inPrison], 
   });
 
   const addresses = { lol: lol.target };
